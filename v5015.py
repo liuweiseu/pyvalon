@@ -1,4 +1,20 @@
 #! /home/wei/.conda/envs/valon/bin/python
+"""
+usage: v5015.py [-h] [--dev DEV] [--baud BAUD] [--freq FREQ] [--amp AMP] [--ref REF] [--rfout RFOUT] [--pwr PWR] [--v]
+
+Usage for Setting V5015.
+
+optional arguments:
+  -h, --help     show this help message and exit
+  --dev DEV      Serial port for V5015.
+  --baud BAUD    Baud rate.
+  --freq FREQ    The frequency in MHz.
+  --amp AMP      The amplitude in dBm.
+  --ref REF      The reference source('internal' or 'external' or 'status')
+  --rfout RFOUT  The rfout status('on' or 'off' or 'status')
+  --pwr PWR      The power status('on' or 'off' or 'status')
+  --v            Verbose
+"""
 from Valon import V5015
 from argparse import ArgumentParser
 
@@ -6,7 +22,7 @@ JUST_LEN = 8
 
 def main():
     parser = ArgumentParser(description="Usage for Setting V5015.")
-    parser.add_argument('--dev',dest='dev', type=str, default='/dev/ttyUSB13',help='Serial port for V5015.')
+    parser.add_argument('--dev',dest='dev', type=str, default='/dev/ttyUSB11',help='Serial port for V5015.')
     parser.add_argument('--baud',dest='baud', type=int, default=921600, help='Baud rate.')
     parser.add_argument('--freq', dest='freq', type=float, help='The frequency in MHz.')
     parser.add_argument('--amp', dest='amp', type=float, help='The amplitude in dBm.')
