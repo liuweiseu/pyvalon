@@ -25,7 +25,7 @@ def main():
     parser.add_argument('--dev',dest='dev', type=str, default='/dev/ttyUSB0',help='Serial port for V5015.')
     parser.add_argument('--baud',dest='baud', type=int, default=921600, help='Baud rate.')
     parser.add_argument('--freq', dest='freq', type=float, help='The frequency in MHz.')
-    parser.add_argument('--amp', dest='amp', type=float, help='The amplitude in dBm.')
+    parser.add_argument('--amp', dest='amp', type=float, default=-999, help='The amplitude in dBm.')
     parser.add_argument('--ref',dest='ref',type=str, default='', help='The reference source(\'internal\' or \'external\' or \'status\')')
     parser.add_argument('--rfout', dest='rfout', type=str, default='', help='The rfout status(\'on\' or \'off\'  or \'status\')')
     parser.add_argument('--pwr', dest='pwr', type=str, default='', help='The power status(\'on\' or \'off\'  or \'status\')')
@@ -38,7 +38,7 @@ def main():
     if args.freq :
         r = synth.SetFreq(args.freq,'MHz',verbose=args.verbose)
         print('%s: %s'%('Freq'.ljust(JUST_LEN),r))
-    if args.amp:
+    if args.amp > -999:
         r = synth.SetAmp(args.amp,verbose=args.verbose)
         print('%s: %s'%('Freq'.ljust(JUST_LEN),r))
     if args.ref:
