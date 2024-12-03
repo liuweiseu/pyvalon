@@ -23,7 +23,7 @@ JUST_LEN = 8
 def main():
     parser = ArgumentParser(description="Usage for Setting V5015.")
     parser.add_argument('--dev',dest='dev', type=str, default='/dev/ttyUSB0',help='Serial port for V5015.')
-    parser.add_argument('--baud',dest='baud', type=int, default=921600, help='Baud rate.')
+    parser.add_argument('--baud',dest='baud', type=int, default=9600, help='Baud rate.')
     parser.add_argument('--freq', dest='freq', type=float, help='The frequency in MHz.')
     parser.add_argument('--amp', dest='amp', type=float, default=-999, help='The amplitude in dBm.')
     parser.add_argument('--ref',dest='ref',type=str, default='', help='The reference source(\'internal\' or \'external\' or \'status\')')
