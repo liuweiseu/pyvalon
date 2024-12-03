@@ -1,4 +1,4 @@
-#! /home/wei/.conda/envs/valon/bin/python
+#! /usr/bin/env python
 """
 usage: v5015.py [-h] [--dev DEV] [--baud BAUD] [--freq FREQ] [--amp AMP] [--ref REF] [--rfout RFOUT] [--pwr PWR] [--v]
 
@@ -22,7 +22,7 @@ JUST_LEN = 8
 
 def main():
     parser = ArgumentParser(description="Usage for Setting V5015.")
-    parser.add_argument('--dev',dest='dev', type=str, default='/dev/ttyUSB11',help='Serial port for V5015.')
+    parser.add_argument('--dev',dest='dev', type=str, default='/dev/ttyUSB0',help='Serial port for V5015.')
     parser.add_argument('--baud',dest='baud', type=int, default=921600, help='Baud rate.')
     parser.add_argument('--freq', dest='freq', type=float, help='The frequency in MHz.')
     parser.add_argument('--amp', dest='amp', type=float, help='The amplitude in dBm.')

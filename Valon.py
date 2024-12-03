@@ -11,7 +11,7 @@ class Valon(object):
         which uses serial port.
     """
     def __init__(self, dev, baud):
-        self.ser = serial.Serial(dev,baud,timeout=0.5)
+        self.ser = serial.Serial(dev,baud,timeout=0.5, xonxoff=False)
     
     def sendcmd(self, cmd):
         self.ser.write(cmd.encode('utf-8'))
