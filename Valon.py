@@ -296,19 +296,6 @@ class V500X(object):
             regs['dbf'] = 1
         return regs
 
-    def _get_options(self, synth):
-        try:
-            s = V500X.SYNTH[synth]
-        except:
-            print('synth is not supported.')
-            return
-        cmdbytes = bytearray(1)
-        cmdbytes[0] = 0x80|s
-        r = self.sendcmd(cmdbytes)
-        regbytes = r[:24]
-        checksum = r[24]
-        regs = self._unpack_regs(r[:24])
-
     def GetReference(self):
         """
         Description:
@@ -326,6 +313,10 @@ class V500X(object):
         freq = self._unpack_int(b, 0)
         return freq
     
+    def SetReference(self):
+        #TODO: not implemented
+        return NotImplemented
+
     def GetOptions(self, synth):
         """
         Description:
@@ -354,6 +345,10 @@ class V500X(object):
         opts['half_ref'] = (reg2 >> 24) & 1;
         opts['r'] = (reg2 >> 14) & 0x03ff;
         return opts
+
+    def SetOptions(self):
+        #TODO: not implemented
+        return NotImplemented
 
     def GetEPDF(self, synth):
         """
@@ -404,6 +399,10 @@ class V500X(object):
         vcor['min'] = self._unpack_short(b,0)
         vcor['max'] = self._unpack_short(b,2)
         return vcor
+
+    def SetVCORange(self):
+        # TODO: not implemented
+        return NotImplemented
 
     def GetFreq(self, synth, verbose=False):
         """
@@ -487,6 +486,182 @@ class V500X(object):
         cmdbytes[0] = 0x00|s
         self._pack_freq_registers(regs, cmdbytes, 1)
         cmdbytes[25] = self._generate_checksum(cmdbytes[1:25])
+        self._write(cmdbytes)
+        r = self._read(1)
+        r = struct.unpack('b', r)[0]
+        if r == V500X.REPLY['ACK']:
+            return True
+        else:
+            return False
+    
+    def GetRFLevel(self, synth, verbose=False):
+        """
+        Description:
+            Get the RF output level.
+        Inputs:
+            - synth (str): A - synthesizer 1; B - synthesizer 2.
+        Outputs:
+            - rf_level (int): RF output level.
+        """
+        try:
+            s = V500X.SYNTH[synth]
+        except:
+            print('synth is not supported.')
+            return
+        cmdbytes = bytearray(1)
+        cmdbytes[0] = 0x80|s
+        self._write(cmdbytes)
+        b = self._read(24)
+        c = self._read(1)
+        if self.CheckReadBack(b,24,c) == False:
+            return
+        reg4 = self._unpack_int(b, 16)
+        if verbose:
+            print('raw reg data:', b)
+            print('reg4:', hex(reg4))
+        rfl = (reg4 >> 3) & 0x03
+        if rfl == 0:
+            rf_level = -4
+        elif rfl == 1:
+            rf_level = -1
+        elif rfl == 2:
+            rf_level = 2
+        elif rfl == 3:
+            rf_level = 5
+        return rf_level 
+
+    def SetRFLevel(self, synth, rf_level):
+        """
+        Description:
+            Set the RF output level.
+        Inputs:
+            - synth (str): A - synthesizer 1; B - synthesizer 2.
+            - rf_level (int): -4, -1, 2 or 5.
+        """     
+        if rf_level == -4:
+            rfl = 0
+        elif rf_level == -1:
+            rfl = 1
+        elif rf_level == 2:
+            rfl = 2
+        elif rf_level == 5:
+            rfl = 3
+        else:
+            print('Invalid options.')
+            print('The valid option is -4, -1, 2 or 5')
+            return False
+        try:
+            s = V500X.SYNTH[synth]
+        except:
+            print('synth is not supported.')
+            return
+        cmdbyte = bytearray(1)
+        cmdbyte[0] = 0x80|s
+        self._write(cmdbyte)
+        b = self._read(24)
+        c = self._read(1)
+        if self.CheckReadBack(b,24,c) == False:
+            return
+        reg4 = self._unpack_int(b, 16)
+        reg4 &= 0xffffffe7
+        reg4 |= (rfl & 0x03) << 3
+        cmdbytes = bytearray(26)
+        cmdbytes[0] = 0x00|s
+        cmdbytes[1:25] = b
+        self._pack_int(reg4, cmdbytes, 17)
+        cmdbytes[25] = self._generate_checksum(b)
+        self._write(cmdbytes)
+        r = self._read(1)
+        r = struct.unpack('b', r)[0]
+        if r == V500X.REPLY['ACK']:
+            return True
+        else:
+            return False
+
+    def GetPhaseLock(self, synth, verbose=False):
+        """
+        Description:
+            Check if the synthesizer is locked or not.
+        Inputs:
+            - synth (str): A - synthesizer 1; B - synthesizer 2.
+        Outpus:
+            - locked (bool): True - locked; False - unlocked.
+        """
+        try:
+            s = V500X.SYNTH[synth]
+        except:
+            print('synth is not supported.')
+            return
+        cmdbytes = bytearray(1)
+        cmdbytes[0] = 0x86|s
+        self._write(cmdbytes)
+        b = self._read(1)
+        c = self._read(1)
+        if self.CheckReadBack(b,1,c) == False:
+            return
+        if synth == 'A':
+            mask = 0x20
+        elif synth == 'B':
+            mask = 0x10
+        status = struct.unpack('b', b)[0]
+        if verbose:
+            print(b)
+            print('Lock status(bit4 and bit5):', status)
+        if status&mask:
+            return True
+        else:
+            return False
+
+    def GetRefSelect(self):
+        """
+        Description:
+            Get the reference selection.
+        Outpus:
+            - sel (str): 'external' or 'internal'
+        """
+        cmdbytes = bytearray(1)
+        cmdbytes[0] = 0x86
+        self._write(cmdbytes)
+        b = self._read(1)
+        c = self._read(1)
+        if self.CheckReadBack(b,1,c) == False:
+            return
+        s = struct.unpack('b', b)[0]
+        if s&1:
+            return 'external'
+        else:
+            return 'internal'
+    
+    def SetRefSelect(self, sel='external'):
+        """
+        Description:
+            Set the reference.
+        Inputs:
+            - sel (str): 'external' or 'internal'.
+        """
+        if sel == 'external':
+            s = 1
+        elif sel == 'internal':
+            s = 0
+        else:
+            print('Invalid option.')
+            return
+        cmdbytes = bytearray(3)
+        cmdbytes[0] = 0x06
+        cmdbytes[1] = s & 1
+        cmdbytes[2] = self._generate_checksum(cmdbytes[:2])
+        self._write(cmdbytes)
+        r = self._read(1)
+        r = struct.unpack('b', r)[0]
+        if r == V500X.REPLY['ACK']:
+            return True
+        else:
+            return False
+
+    def Flash(self):
+        cmdbytes = bytearray(2)
+        cmdbytes[0] = 0x40
+        cmdbytes[1] = self._generate_checksum(cmdbytes[0])
         self._write(cmdbytes)
         r = self._read(1)
         r = struct.unpack('b', r)[0]
