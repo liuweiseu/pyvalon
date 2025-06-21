@@ -350,7 +350,7 @@ class V500X(object):
         #TODO: not implemented
         return NotImplemented
 
-    def GetEPDF(self, synth):
+    def GetEPDF(self, synth, verbose=False):
         """
         Description:
             This is used for the refernce calculation.
@@ -366,13 +366,20 @@ class V500X(object):
             return
         reference = self.GetReference()
         opts = self.GetOptions(synth)
+        if verbose:
+            print('reference: ', reference)
+            print('double_ref: ', opts['double_ref'])
+            print('half_ref: ', opts['half_ref'])
+            print('r: ', opts['r'])
         if opts['double_ref']:
             reference *= 2.0;
         if opts['half_ref']:
             reference /= 2.0;
         if opts['r'] > 1:
-            reference /= opts.r;
-        return reference;
+            reference /= opts['r'];
+        if verbose:
+            print('calculated reference: ', reference)
+        return reference
 
     def GetVCORange(self, synth):
         """
@@ -428,6 +435,7 @@ class V500X(object):
         EPDF = self.GetEPDF(synth)
         regs = self._unpack_freq_registers(b)
         if verbose:
+            print('EPDF: ', EPDF)
             print('dbf:', regs['dbf'])
             print('ncount:', regs['ncount'])
             print('frac:', regs['frac'])
@@ -476,14 +484,23 @@ class V500X(object):
             regs['frac'] = 0
             regs['mod'] = 1
         if verbose:
+            print('EPDF: ', EPDF)
             print('dbf:', regs['dbf'])
             print('ncount:', regs['ncount'])
             print('frac:', regs['frac'])
             print('mod:', regs['mod'])
             
-        # Write values to hardware
+        #Write values to hardware
+        cmdbyte = bytearray(1)
+        cmdbyte[0] = 0x80|s
+        self._write(cmdbyte)
+        b = self._read(24)
+        c = self._read(1)
+        if self.CheckReadBack(b,24,c) == False:
+            return
         cmdbytes = bytearray(26)
         cmdbytes[0] = 0x00|s
+        cmdbytes[1:25] = b
         self._pack_freq_registers(regs, cmdbytes, 1)
         cmdbytes[25] = self._generate_checksum(cmdbytes[1:25])
         self._write(cmdbytes)
@@ -605,8 +622,7 @@ class V500X(object):
             mask = 0x10
         status = struct.unpack('b', b)[0]
         if verbose:
-            print(b)
-            print('Lock status(bit4 and bit5):', status)
+            print('Lock status(bit4 and bit5):', hex(status))
         if status&mask:
             return True
         else:
@@ -661,7 +677,7 @@ class V500X(object):
     def Flash(self):
         cmdbytes = bytearray(2)
         cmdbytes[0] = 0x40
-        cmdbytes[1] = self._generate_checksum(cmdbytes[0])
+        cmdbytes[1] = self._generate_checksum([cmdbytes[0]])
         self._write(cmdbytes)
         r = self._read(1)
         r = struct.unpack('b', r)[0]
