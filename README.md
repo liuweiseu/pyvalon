@@ -44,11 +44,11 @@ If miniconda is installed, please create and activate the python environment.
     $ ./v5008.py -h
     usage: v5008.py [-h] [--dev DEV] [--baud BAUD] [--synth {A,B}] [--freq FREQ] [--amp {-4,-1,2,5}] [--ref {external,internal}] [--status] [--flash]
 
-    Usage for Setting V5008.
+    Usage for Setting V5007/V5008.
 
     options:
     -h, --help            show this help message and exit
-    --dev DEV             Serial port for V5008.
+    --dev DEV             Serial port for V5007/V5008.
     --baud BAUD           Baud rate.
     --synth {A,B}         A - synthesizer 1; B - synthesizer 2.
     --freq FREQ           The frequency in MHz.
