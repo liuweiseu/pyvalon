@@ -210,6 +210,9 @@ class V500X(object):
     
     def _read(self, l):
         return self.ser.read(l)
+    
+    def close(self):
+        self.ser.close()
 
     def _pack_int(self, val, d, offset):
         r = struct.pack('>i', val)
