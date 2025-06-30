@@ -28,6 +28,11 @@ def CheckStatus(synth, s):
     print('%s: %d'%('RF Level'.ljust(JUST_LEN), rf_level))
     ref = synth.GetRefSelect()
     print('%s: %s'%('Reference'.ljust(JUST_LEN), ref))
+    lock = synth.GetPhaseLock(s)
+    if lock == True:
+        print('%s: %s'%('Lock'.ljust(JUST_LEN), 'Locked'))  
+    else:
+        print('%s: %s'%('Lock'.ljust(JUST_LEN), 'Unlocked'))  
 
 def GetSynth(args):
     if args.synth == None:
